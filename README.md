@@ -5,7 +5,7 @@ A URL Shortener and Redirector Web App
 - goto/ Index page, form to input new (keyword, url) pair
 - goto/admin, admin page to view list of mapped shortcuts
 - goto/error, error page to indicate invalid keyword passed, link to index page
-- goto/<keyword>, lookup keyword in DB
+- `goto/<keyword>`, lookup keyword in DB
   - If keyword exists in DB, redirect to mapped URL
   - If not exists, redirect to <hostname>/error
 
