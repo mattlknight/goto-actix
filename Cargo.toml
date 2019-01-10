@@ -1,0 +1,8 @@
+[package]
+name = "goto"
+version = "0.1.0"
+authors = ["Matthew Knight <mattlknight@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+actix-web = "0.7"
