@@ -15,8 +15,8 @@ CREATE TABLE public.keywords
     id integer NOT NULL DEFAULT nextval('keywords_id_seq'::regclass),
     keyword text COLLATE pg_catalog."default" NOT NULL,
     url text COLLATE pg_catalog."default" NOT NULL,
-    created_on timestamp without time zone NOT NULL,
-    modified_on timestamp without time zone NOT NULL,
+    created_on timestamp without time zone NOT NULL default now(),
+    modified_on timestamp without time zone NOT NULL default now(),
     CONSTRAINT keywords_pkey PRIMARY KEY (id)
 )
 WITH (

@@ -14,7 +14,7 @@ CREATE TABLE public.tracking
 (
     id integer NOT NULL DEFAULT nextval('tracking_id_seq'::regclass),
     keyword_id integer NOT NULL,
-    accessed_on timestamp without time zone NOT NULL,
+    accessed_on timestamp without time zone NOT NULL default now(),
     CONSTRAINT tracking_pkey PRIMARY KEY (id),
     CONSTRAINT fkey_tracking_keyword FOREIGN KEY (keyword_id)
         REFERENCES public.keywords(id)

@@ -1,6 +1,6 @@
 table! {
-    keywords (row_id) {
-        row_id -> Int4,
+    keywords (id) {
+        id -> Int4,
         keyword -> Text,
         url -> Text,
         created_on -> Timestamp,
@@ -9,8 +9,8 @@ table! {
 }
 
 table! {
-    tracking (row_id) {
-        row_id -> Int4,
+    tracking (id) {
+        id -> Int4,
         keyword_id -> Int4,
         accessed_on -> Timestamp,
     }
