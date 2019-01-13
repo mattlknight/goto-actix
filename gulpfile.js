@@ -16,7 +16,7 @@ var inlineimg = require('gulp-inline-image-html');
 var inlinesource = require('gulp-inline-source');
 
 gulp.task('default', function() {
-    return gulp.src('./static/src/index.html')
+    return gulp.src('./static/src/*.html')
       .pipe(inline({
         base: './static/',
         // js: uglify,
