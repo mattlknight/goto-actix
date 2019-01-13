@@ -19,7 +19,7 @@ use rocket::request::Form;
 use rocket::response::{Redirect, Response};
 use rocket::http::RawStr;
 use rocket_contrib::databases::diesel as rkt_diesel;
-use rocket_contrib::serve::StaticFiles;
+// use rocket_contrib::serve::StaticFiles;
 use std::env;
 use std::io::Cursor;
 
@@ -42,7 +42,7 @@ struct FormKeyword {
 
 #[get("/favicon.ico")]
 fn favicon() -> Response<'static> {
-    let fav_icon = include_bytes!("../static/favicon.ico");
+    let fav_icon = include_bytes!("../static/dist/favicon.ico");
     let response = Response::build()
         .status(Status::Ok)
         .raw_header("image", "x-icon")
@@ -51,13 +51,35 @@ fn favicon() -> Response<'static> {
     response
 }
 
-#[get("/icon.png")]
-fn icon() -> Response<'static> {
-    let fav_icon = include_bytes!("../static/icon.png");
+// #[get("/icon.png")]
+// fn icon() -> Response<'static> {
+//     let fav_icon = include_bytes!("../static/dist/icon.png");
+//     let response = Response::build()
+//         .status(Status::Ok)
+//         .raw_header("image", "png")
+//         .sized_body(Cursor::new(fav_icon.as_ref()))
+//         .finalize();
+//     response
+// }
+
+#[get("/")]
+fn index() -> Response<'static> {
+    let body = include_bytes!("../static/dist/index.html");
     let response = Response::build()
         .status(Status::Ok)
-        .raw_header("image", "png")
-        .sized_body(Cursor::new(fav_icon.as_ref()))
+        .header(ContentType::HTML)
+        .sized_body(Cursor::new(body.as_ref()))
+        .finalize();
+    response
+}
+
+#[get("/error.html")]
+fn error() -> Response<'static> {
+    let body = include_bytes!("../static/dist/error.html");
+    let response = Response::build()
+        .status(Status::Ok)
+        .header(ContentType::HTML)
+        .sized_body(Cursor::new(body.as_ref()))
         .finalize();
     response
 }
@@ -74,13 +96,18 @@ fn get_keyword(req_keyword: &RawStr) -> Redirect {
         .load::<Keyword>(&connection);
     match records {
         Ok(records) => {
-            let record = records.first().expect("If I have a record, it should be some");
-            Redirect::to(format!("{}", record.url))
-            // Redirect::to("/")
+            match records.first() {
+                Some(record) => {
+                    Redirect::to(format!("{}", record.url))
+                },
+                None => {
+                    Redirect::to("/error.html")
+                }
+            }
         },
         Err(err) => {
             println!("Error: {:?}", err);
-            Redirect::to("/")
+            Redirect::to("/error.html")
         },
     }
 }
@@ -107,12 +134,14 @@ fn main() {
     print_keywords(connection);
     rocket::ignite()
         .mount("/", routes![
+            index,
+            error,
             favicon,
-            icon,
+            // icon,
             add_keyword,
             get_keyword
         ])
-        .mount("/", StaticFiles::from(concat!(env!("CARGO_MANIFEST_DIR"), "/static")))
+        // .mount("/", StaticFiles::from(concat!(env!("CARGO_MANIFEST_DIR"), "/static/dist")))
         // .mount("/", StaticFiles::from("/static"))
         // .mount("/", routes![get_keyword])
         .launch();
