@@ -3,8 +3,8 @@
 
 #[macro_use] extern crate diesel;
 extern crate dotenv;
-#[macro_use] extern crate rocket;
-#[macro_use] extern crate rocket_contrib;
+// #[macro_use] extern crate rocket;
+// #[macro_use] extern crate rocket_contrib;
 
 pub mod schema;
 pub mod models;
@@ -13,79 +13,61 @@ pub mod models;
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
 use dotenv::dotenv;
-use lazy_static::lazy_static;
-use rocket::http::{ContentType, Status};
-use rocket::request::Form;
-use rocket::response::{Redirect, Response};
-use rocket::http::RawStr;
-use rocket_contrib::databases::diesel as rkt_diesel;
-// use rocket_contrib::serve::StaticFiles;
+use futures::future::{Future, ok};
+use serde_derive::Deserialize;
 use std::env;
-use std::io::Cursor;
+// use std::io::Cursor;
+use actix_web::{server, App, HttpRequest, HttpResponse, HttpMessage, AsyncResponder};
+// use actix_web::Responder;
+use actix_web::http::{header, Method};
+use self::models::{Keyword, NewKeyword};
 
+fn main() {
+    dotenv().ok();
+    let connection = establish_connection();
+    print_keywords(connection);
 
-lazy_static!{
-    static ref content_icon:ContentType = ContentType::new("image", "x-icon");
-    static ref content_png:ContentType = ContentType::new("image", "png");
+    server::new(|| {
+        App::new()
+            .resource("/", |r| r.method(Method::GET).f(get_index))
+            .resource("/", |r| r.method(Method::POST).f(add_keyword))
+            .resource("/error.html", |r| r.f(get_error))
+            .resource("/favicon.ico", |r| r.f(favicon))
+            .resource("/{keyword}", |r| r.method(Method::GET).f(get_keyword))
+    })
+    .bind("0.0.0.0:8000")
+    .expect("Can not bind to 0.0.0.0:8000")
+    .run();
 }
 
-#[database("pg_db")]
-struct DbConn(rkt_diesel::PgConnection);
-
-#[derive(FromForm)]
-struct FormKeyword {
-    #[form(field = "inputKeyword")]
-    keyword: String,
-    #[form(field = "inputUrl")]
-    url: String,
-}
-
-#[get("/favicon.ico")]
-fn favicon() -> Response<'static> {
-    let fav_icon = include_bytes!("../static/dist/favicon.ico");
-    let response = Response::build()
-        .status(Status::Ok)
-        .raw_header("image", "x-icon")
-        .sized_body(Cursor::new(fav_icon.as_ref()))
-        .finalize();
-    response
-}
-
-// #[get("/icon.png")]
-// fn icon() -> Response<'static> {
-//     let fav_icon = include_bytes!("../static/dist/icon.png");
-//     let response = Response::build()
-//         .status(Status::Ok)
-//         .raw_header("image", "png")
-//         .sized_body(Cursor::new(fav_icon.as_ref()))
-//         .finalize();
-//     response
-// }
-
-#[get("/")]
-fn index() -> Response<'static> {
+fn get_index(_req: &HttpRequest) -> HttpResponse {
     let body = include_bytes!("../static/dist/index.html");
-    let response = Response::build()
-        .status(Status::Ok)
-        .header(ContentType::HTML)
-        .sized_body(Cursor::new(body.as_ref()))
-        .finalize();
-    response
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .header("text", "html")
+        .body(body.as_ref())
 }
 
-#[get("/error.html")]
-fn error() -> Response<'static> {
+fn get_error(_req: &HttpRequest) -> HttpResponse {
     let body = include_bytes!("../static/dist/error.html");
-    let response = Response::build()
-        .status(Status::Ok)
-        .header(ContentType::HTML)
-        .sized_body(Cursor::new(body.as_ref()))
-        .finalize();
-    response
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .header("text", "html")
+        .body(body.as_ref())
 }
 
-#[get("/<req_keyword>")]
-fn get_keyword(req_keyword: &RawStr) -> Redirect {
+fn favicon(_req: &HttpRequest) -> HttpResponse {
+    let fav_icon = include_bytes!("../static/dist/favicon.ico");
+    HttpResponse::Ok()
+        .content_type("image/x-icon")
+        .header("image", "x-icon")
+        .body(fav_icon.as_ref())
+}
+
+fn get_keyword(req: &HttpRequest) -> HttpResponse {
+    let req_keyword = req.match_info()
+                    .get("keyword")
+                    .expect("Failed to parse keyword from route match info");
     println!("Requested keyword {}!", req_keyword);
 
     let connection = establish_connection();
@@ -97,54 +79,51 @@ fn get_keyword(req_keyword: &RawStr) -> Redirect {
     match records {
         Ok(records) => {
             match records.first() {
-                Some(record) => {
-                    Redirect::to(format!("{}", record.url))
+                Some(ref record) => {
+                    HttpResponse::TemporaryRedirect()
+                        .header(header::LOCATION, record.url.clone())
+                        .finish()
                 },
                 None => {
-                    Redirect::to("/error.html")
+                    HttpResponse::TemporaryRedirect()
+                        .header(header::LOCATION, "/error.html")
+                        .finish()
                 }
             }
         },
         Err(err) => {
             println!("Error: {:?}", err);
-            Redirect::to("/error.html")
+            HttpResponse::TemporaryRedirect()
+                .header(header::LOCATION, "/error.html")
+                .finish()
         },
     }
 }
 
-#[post("/", data = "<form_keyword>")]
-fn add_keyword<'a>(form_keyword: Option<Form<FormKeyword>>) -> String {
-    match form_keyword {
-        Some(form_keyword) => {
-            println!("  Passed keyword: {} URL: {}", form_keyword.keyword, form_keyword.url);
+#[derive(Deserialize)]
+struct FormKeyword {
+    keyword: String,
+    url: String,
+}
+
+fn add_keyword(req: &HttpRequest) -> Box<Future<Item=HttpResponse, Error=actix_web::error::Error>> {
+    req.urlencoded::<FormKeyword>()
+        .from_err()
+        .and_then(|data| {
+            println!("  Passed keyword: {} URL: {}", data.keyword, data.url);
             let connection = establish_connection();
-            match create_keyword(&connection, &form_keyword.keyword, &form_keyword.url) {
-                Ok(result) => format!("Successfully saved {:?}", result),
-                Err(err) => format!("{:?}", err),
+            match create_keyword(&connection, &data.keyword, &data.url) {
+                Ok(result) => { ok(HttpResponse::Ok()
+                                .body(format!("Successfully saved {:?}", result))
+                                .into())
+                },
+                Err(err) => { ok(HttpResponse::Ok()
+                                .body(format!("{:?}", err))
+                                .into())
+                }
             }
-        },
-        None => "Invalid post request".to_owned()
-    }
-
-}
-
-fn main() {
-    dotenv().ok();
-    let connection = establish_connection();
-    print_keywords(connection);
-    rocket::ignite()
-        .mount("/", routes![
-            index,
-            error,
-            favicon,
-            // icon,
-            add_keyword,
-            get_keyword
-        ])
-        // .mount("/", StaticFiles::from(concat!(env!("CARGO_MANIFEST_DIR"), "/static/dist")))
-        // .mount("/", StaticFiles::from("/static"))
-        // .mount("/", routes![get_keyword])
-        .launch();
+        })
+        .responder()
 }
 
 pub fn print_keywords(connection: diesel::PgConnection) {
@@ -171,8 +150,6 @@ pub fn establish_connection() -> PgConnection {
     PgConnection::establish(&database_url)
         .expect(&format!("Error connecting to {}", database_url))
 }
-
-use self::models::{Keyword, NewKeyword};
 
 pub fn create_keyword<'a>(conn: &PgConnection, keyword: &'a str, url: &'a str) -> Result<Keyword, diesel::result::Error> {
     use crate::schema::keywords;
