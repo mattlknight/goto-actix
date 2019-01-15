@@ -35,8 +35,8 @@ fn main() {
             .resource("/favicon.ico", |r| r.f(favicon))
             .resource("/{keyword}", |r| r.method(Method::GET).f(get_keyword))
     })
-    .bind("0.0.0.0:8000")
-    .expect("Can not bind to 0.0.0.0:8000")
+    .bind("0.0.0.0:80")
+    .expect("Can not bind to 0.0.0.0:80")
     .run();
 }
 
