@@ -17,7 +17,7 @@ use futures::future::{Future, ok};
 use serde_derive::Deserialize;
 use std::env;
 // use std::io::Cursor;
-use actix_web::{server, App, HttpRequest, HttpResponse, HttpMessage, AsyncResponder};
+use actix_web::{server, pred, App, HttpRequest, HttpResponse, HttpMessage, AsyncResponder};
 // use actix_web::Responder;
 use actix_web::http::{header, Method};
 use self::models::{Keyword, NewKeyword};
@@ -29,8 +29,10 @@ fn main() {
 
     server::new(|| {
         App::new()
-            .resource("/", |r| r.method(Method::GET).f(get_index))
-            .resource("/", |r| r.method(Method::POST).f(add_keyword))
+            .resource("/", |r| {
+                r.route().filter(pred::Get()).f(get_index);
+                r.route().filter(pred::Post()).f(add_keyword)
+            })
             .resource("/error.html", |r| r.f(get_error))
             .resource("/favicon.ico", |r| r.f(favicon))
             .resource("/{keyword}", |r| r.method(Method::GET).f(get_keyword))
@@ -41,6 +43,7 @@ fn main() {
 }
 
 fn get_index(_req: &HttpRequest) -> HttpResponse {
+    println!("Get Index");
     let body = include_bytes!("../static/dist/index.html");
     HttpResponse::Ok()
         .content_type("text/html")
@@ -49,6 +52,7 @@ fn get_index(_req: &HttpRequest) -> HttpResponse {
 }
 
 fn get_error(_req: &HttpRequest) -> HttpResponse {
+    println!("Get Error");
     let body = include_bytes!("../static/dist/error.html");
     HttpResponse::Ok()
         .content_type("text/html")
@@ -57,6 +61,7 @@ fn get_error(_req: &HttpRequest) -> HttpResponse {
 }
 
 fn favicon(_req: &HttpRequest) -> HttpResponse {
+    println!("Get FavIcon");
     let fav_icon = include_bytes!("../static/dist/favicon.ico");
     HttpResponse::Ok()
         .content_type("image/x-icon")
@@ -65,6 +70,7 @@ fn favicon(_req: &HttpRequest) -> HttpResponse {
 }
 
 fn get_keyword(req: &HttpRequest) -> HttpResponse {
+    println!("Get Keyword");
     let req_keyword = req.match_info()
                     .get("keyword")
                     .expect("Failed to parse keyword from route match info");
@@ -107,10 +113,11 @@ struct FormKeyword {
 }
 
 fn add_keyword(req: &HttpRequest) -> Box<Future<Item=HttpResponse, Error=actix_web::error::Error>> {
+    println!("Add keyword");
     req.urlencoded::<FormKeyword>()
         .from_err()
         .and_then(|data| {
-            println!("  Passed keyword: {} URL: {}", data.keyword, data.url);
+            println!("POST:  Passed keyword: {} URL: {}", data.keyword, data.url);
             let connection = establish_connection();
             match create_keyword(&connection, &data.keyword, &data.url) {
                 Ok(result) => { ok(HttpResponse::Ok()
