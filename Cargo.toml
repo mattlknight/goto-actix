@@ -13,11 +13,12 @@ name = "goto"
 path = "src/main.rs"
 
 [dependencies]
+actix = "*"
 actix-web = "0.7"
 diesel = { version = "1.0.0", features = ["postgres", "chrono"] }
 dotenv = "0.9.0"
 env_logger = "*"
-futures = "*"
+futures = "0.1"
 lazy_static = "*"
 log = "*"
 serde = "*"

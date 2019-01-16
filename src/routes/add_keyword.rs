@@ -1,11 +1,11 @@
 use futures::future::{Future, ok};
 use actix_web::{HttpRequest, HttpResponse, HttpMessage, AsyncResponder};
 use crate::db;
-use crate::types;
+use crate::types::{FormKeyword, AppState};
 
-pub fn add_keyword(req: &HttpRequest) -> Box<dyn Future<Item=HttpResponse, Error=actix_web::error::Error>> {
+pub fn add_keyword(req: &HttpRequest<AppState>) -> Box<dyn Future<Item=HttpResponse, Error=actix_web::error::Error>> {
     println!("Add keyword");
-    req.urlencoded::<types::FormKeyword>()
+    req.urlencoded::<FormKeyword>()
         .from_err()
         .and_then(|data| {
             println!("POST:  Passed keyword: {} URL: {}", data.keyword, data.url);
