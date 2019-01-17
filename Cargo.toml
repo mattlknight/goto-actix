@@ -19,7 +19,6 @@ diesel = { version = "1.0.0", features = ["postgres", "chrono"] }
 dotenv = "0.9.0"
 env_logger = "*"
 futures = "0.1"
-lazy_static = "*"
 log = "*"
 serde = "*"
 serde_derive = "*"
