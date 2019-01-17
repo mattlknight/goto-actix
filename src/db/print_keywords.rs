@@ -1,13 +1,11 @@
-use diesel::pg::PgConnection;
-use diesel::{QueryDsl, RunQueryDsl};
 use crate::models::Keyword;
+use diesel::RunQueryDsl;
+use diesel::pg::PgConnection;
 
 #[allow(dead_code)]
 pub fn print_keywords(connection: PgConnection) {
     use crate::schema::keywords::dsl::*;
-    // let results = keywords.filter(published.eq(true))
     let records = keywords
-        .limit(5)
         .load::<Keyword>(&connection)
         .expect("Error loading posts");
 

@@ -1,11 +1,7 @@
-use ::actix::prelude::*;
 use actix_web::*;
-// use actix::{Message};
-// use crate::models::KeywordPair;
+use actix_web::actix::*;
 use crate::db;
 use crate::types::{StringError, KeywordPair, KeywordFilter};
-// use crate::schema::keywords;
-// use serde_derive::{Serialize, Deserialize};
 use diesel::{QueryDsl, ExpressionMethods, RunQueryDsl};
 use std::mem;
 
@@ -59,7 +55,7 @@ impl<'a> Handler<DbMessage<'a>> for db::DbCon {
             },
             DbMessage::Insert(keyword_pair) => {
                 diesel::insert_into(keywords)
-                    .values(keyword_pair)
+                    .values(&keyword_pair)
                     .execute(&self.0)
                     .map_err(|e| error::ErrorBadRequest(StringError::from(e)))?;
 
