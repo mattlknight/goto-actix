@@ -1,5 +1,5 @@
-use actix_web::*;
-use actix_web::actix::*;
+use actix_web::{error, Error};
+use actix_web::actix::{Message, Handler};
 use crate::db::{self, DbResult};
 use crate::types::{StringError, KeywordPair, KeywordFilter};
 use diesel::{QueryDsl, ExpressionMethods, RunQueryDsl};
