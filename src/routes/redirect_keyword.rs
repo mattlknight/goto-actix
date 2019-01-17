@@ -22,7 +22,7 @@ pub fn redirect_keyword((params, req): (actix_web::Path<String>, HttpRequest<App
 				},
 				Err(err) => {
 					error!("{}", err);
-					Ok(HttpResponse::InternalServerError().into())
+					Ok(HttpResponse::InternalServerError().finish())
 				}
 			}
 		})

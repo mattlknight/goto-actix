@@ -1,8 +1,8 @@
-use actix_web::{error, Error};
 use actix_web::actix::{Message, Handler};
 use crate::db::{self, DbResult};
-use crate::types::{StringError, KeywordPair, KeywordFilter};
+use crate::types::{KeywordPair, KeywordFilter};
 use diesel::{QueryDsl, ExpressionMethods, RunQueryDsl};
+use diesel::result::Error as DieselError;
 
 #[derive(Debug)]
 pub enum DbMessage {
@@ -14,11 +14,11 @@ pub enum DbMessage {
 }
 
 impl Message for DbMessage {
-    type Result = Result<Option<DbResult<KeywordPair>>, Error>;
+    type Result = Result<Option<DbResult<KeywordPair>>, DieselError>;
 }
 
 impl Handler<DbMessage> for db::DbCon {
-    type Result = Result<Option<DbResult<KeywordPair>>, Error>;
+    type Result = Result<Option<DbResult<KeywordPair>>, DieselError>;
 
     fn handle(&mut self, msg: DbMessage, _: &mut Self::Context) -> Self::Result {
         use crate::schema::keywords::dsl::*;
@@ -28,8 +28,7 @@ impl Handler<DbMessage> for db::DbCon {
                 let key_pair = keywords
                     .select((keyword, url))
                     .filter(keyword.eq(req_keyword))
-                    .first::<KeywordPair>(&self.0)
-                    .map_err(|e| error::ErrorBadRequest(StringError::from(e)))?;
+                    .first::<KeywordPair>(&self.0)?;
                 Ok(Some(DbResult::One(key_pair)))
             },
             DbMessage::SelectMany(ref keyword_filter) => {
@@ -38,15 +37,13 @@ impl Handler<DbMessage> for db::DbCon {
                         keywords.select((keyword, url))
                                 .order(keyword.asc())
                                 .limit(keyword_filter.limit)
-                                .load::<KeywordPair>(&self.0)
-                                .map_err(|e| error::ErrorBadRequest(StringError::from(e)))?
+                                .load::<KeywordPair>(&self.0)?
                     },
                     false => {
                         keywords.select((keyword, url))
                                 .order(keyword.desc())
                                 .limit(keyword_filter.limit)
-                                .load::<KeywordPair>(&self.0)
-                                .map_err(|e| error::ErrorBadRequest(StringError::from(e)))?
+                                .load::<KeywordPair>(&self.0)?
                     }
                 };
                 Ok(Some(DbResult::Many(records)))
@@ -54,28 +51,25 @@ impl Handler<DbMessage> for db::DbCon {
             DbMessage::Insert(keyword_pair) => {
                 diesel::insert_into(keywords)
                     .values(&keyword_pair)
-                    .execute(&self.0)
-                    .map_err(|e| error::ErrorBadRequest(StringError::from(e)))?;
+                    .execute(&self.0)?;
 
                 let key_pair = keywords
                     .select((keyword, url))
                     .filter(keyword.eq(&keyword_pair.keyword))
-                    .first::<KeywordPair>(&self.0)
-                    .map_err(|e| error::ErrorBadRequest(StringError::from(e)))?;
+                    .first::<KeywordPair>(&self.0)?;
                 Ok(Some(DbResult::One(key_pair)))
             },
             DbMessage::Update(ref old_keyword, ref keyword_pair) => {
                 let key_pair = diesel::update(keywords.filter(keyword.eq(&old_keyword)))
                     .set((keyword.eq(&keyword_pair.keyword), url.eq(&keyword_pair.url)))
                     .returning((keyword, url))
-                    .get_result(&self.0)
-                    .map_err(|e| error::ErrorBadRequest(StringError::from(e)))?;
+                    .get_result::<KeywordPair>(&self.0)?;
                 Ok(Some(DbResult::One(key_pair)))
+
             },
             DbMessage::DeleteByKeyword(ref key_name) => {
                 diesel::delete(keywords.filter(keyword.eq(&key_name)))
-                    .execute(&self.0)
-                    .map_err(|e| error::ErrorBadRequest(StringError::from(e)))?;
+                    .execute(&self.0)?;
                 Ok(None)
             },
         }

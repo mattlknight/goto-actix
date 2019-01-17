@@ -9,10 +9,10 @@ pub fn delete_keyword((params, req): (actix_web::Path<String>, HttpRequest<AppSt
 		.from_err()
 		.and_then(|res| {
 			match res {
-				Ok(_) => Ok(HttpResponse::Ok().into()),
+				Ok(_) => Ok(HttpResponse::Ok().finish()),
 				Err(err) => {
 					error!("{}", err);
-					Ok(HttpResponse::InternalServerError().into())
+					Ok(HttpResponse::InternalServerError().finish())
 				}
 			}
 		})

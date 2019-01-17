@@ -17,7 +17,7 @@ pub fn get_keywords((data, req): (Json<KeywordFilter>, HttpRequest<AppState>)) -
 				},
 				Err(err) => {
 					error!("{}", err);
-					Ok(HttpResponse::InternalServerError().into())
+					Ok(HttpResponse::InternalServerError().finish())
 				}
 			}
 		})

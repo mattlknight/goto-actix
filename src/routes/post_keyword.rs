@@ -3,6 +3,7 @@ use crate::db::{DbMessage, DbResult};
 use crate::types::{AppState, KeywordPair};
 use futures::future::Future;
 use log::error;
+use diesel::result::{Error as DieselError, DatabaseErrorKind};
 
 pub fn post_keyword((data, req): (Json<KeywordPair>, HttpRequest<AppState>)) -> FutureResponse<HttpResponse> {
 	req.state().db.send(DbMessage::Insert(data.clone()))
@@ -15,10 +16,11 @@ pub fn post_keyword((data, req): (Json<KeywordPair>, HttpRequest<AppState>)) -> 
 						DbResult::Many(_) => unreachable!()
 					}
 				},
+				Err(DieselError::DatabaseError(DatabaseErrorKind::UniqueViolation, _)) => Ok(HttpResponse::Conflict().finish()),
 				Err(err) => {
 					error!("{}", err);
-					Ok(HttpResponse::InternalServerError().into())
-				}
+					unimplemented!()
+				},
 			}
 		})
 		.responder()

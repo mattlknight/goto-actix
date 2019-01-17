@@ -17,7 +17,7 @@ pub fn get_keyword((params, req): (actix_web::Path<String>, HttpRequest<AppState
 				},
 				Err(err) => {
 					error!("{}", err);
-					Ok(HttpResponse::InternalServerError().into())
+					Ok(HttpResponse::InternalServerError().finish())
 				}
 			}
 		})
