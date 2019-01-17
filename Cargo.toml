@@ -15,6 +15,7 @@ path = "src/main.rs"
 [dependencies]
 actix = "*"
 actix-web = "0.7"
+bytes = "*"
 diesel = { version = "1.0.0", features = ["postgres", "chrono"] }
 dotenv = "0.9.0"
 env_logger = "*"
@@ -22,6 +23,7 @@ futures = "0.1"
 log = "*"
 serde = "*"
 serde_derive = "*"
+# serde_json = "*"
 
 [dependencies.chrono]
 version = "*"

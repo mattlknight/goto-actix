@@ -1,8 +1,9 @@
 use actix_web::{server, App};
+use actix_web::middleware::Logger;
 use actix::SyncArbiter;
 use crate::db;
 use crate::routes;
-use crate::types::AppState;
+pub use crate::types::{AppState, RequestInterceptor};
 use dotenv::dotenv;
 use log::{debug, warn};
 use std::env;
@@ -27,6 +28,31 @@ fn get_socket() -> SocketAddr {
     socket
 }
 
+pub fn build_state() -> AppState {
+    let addr = SyncArbiter::start(4, || {
+        db::DbCon(db::establish_connection())
+    });
+
+    AppState{db: addr.clone()}
+}
+
+fn create_app() -> App<AppState> {
+    App::with_state(build_state())
+        .middleware(RequestInterceptor)
+        .middleware(Logger::default())
+        .middleware(Logger::new("%a %{User-Agent}i"))
+        .resource("/api/keyword", |r| {
+            r.get().with_async(routes::get_keywords);
+            r.post().with_async(routes::post_keyword);
+        })
+        .resource("/api/keyword/{keyword}", |r| {
+            r.get().with_async(routes::get_keyword);
+            r.put().with_async(routes::put_keyword);
+            r.delete().with_async(routes::delete_keyword);
+        })
+        .resource("/{keyword}", |r| r.get().with(routes::redirect_keyword))
+}
+
 pub fn start() {
     dotenv().ok();
 
@@ -36,28 +62,13 @@ pub fn start() {
     debug!("Binding to {}", socket);
 
     let sys = actix::System::new("diesel-system");
-    let addr = SyncArbiter::start(4, || {
-        db::DbCon(db::establish_connection())
-    });
 
     db::print_keywords(db::establish_connection());
 
-    server::HttpServer::new(move || {
-        App::with_state(AppState{db: addr.clone()})
-            .resource("/api/keyword", |r| {
-                r.get().with_async(routes::get_keywords);
-                r.post().with_async(routes::post_keyword);
-            })
-            .resource("/api/keyword/{keyword}", |r| {
-                r.get().with_async(routes::get_keyword);
-                r.put().with_async(routes::put_keyword);
-                r.delete().with_async(routes::delete_keyword);
-            })
-            .resource("/{keyword}", |r| r.get().with(routes::redirect_keyword))
-    })
-    .bind(socket)
-    .expect(&format!("Can not bind to {:?}", socket))
-    .start();
+    server::HttpServer::new(create_app)
+        .bind(socket)
+        .expect(&format!("Can not bind to {:?}", socket))
+        .start();
 
     debug!("Started http server: {:?}", socket);
     let _ = sys.run();

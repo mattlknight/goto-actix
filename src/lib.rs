@@ -4,8 +4,10 @@
 
 #[macro_use] extern crate diesel;
 
-mod db;
-mod routes;
-mod schema;
-mod types;
+pub mod db;
+pub mod routes;
+pub mod schema;
+pub mod types;
 pub mod server;
+
+pub use db::establish_connection;
