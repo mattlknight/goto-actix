@@ -1,14 +1,6 @@
 use chrono::NaiveDateTime;
-use super::schema::keywords;
+use crate::schema::keywords;
 use serde_derive::Serialize;
-// use diesel::prelude::*;
-
-#[derive(Insertable, Queryable, Debug, Serialize)]
-#[table_name="keywords"]
-pub struct NewKeyword<'a> {
-    pub keyword: &'a str,
-    pub url: &'a str,
-}
 
 #[derive(Insertable, Queryable, Debug, Serialize)]
 #[table_name="keywords"]
@@ -25,6 +17,13 @@ pub struct Keyword {
     pub created_on: NaiveDateTime,
     pub modified_on: NaiveDateTime,
 }
+
+// #[derive(Insertable, Queryable, Debug, Serialize)]
+// #[table_name="keywords"]
+// pub struct NewKeyword<'a> {
+//     pub keyword: &'a str,
+//     pub url: &'a str,
+// }
 
 // #[derive(Queryable, Debug)]
 // pub struct KeywordTrace {

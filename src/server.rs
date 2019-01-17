@@ -1,13 +1,12 @@
-use dotenv::dotenv;
-use actix::SyncArbiter;
-// use actix::{Addr, SyncArbiter};
 use actix_web::{server, App};
-use log::{debug, warn};
-use std::net::SocketAddr;
-use std::env;
+use actix::SyncArbiter;
 use crate::db;
 use crate::routes;
 use crate::types::AppState;
+use dotenv::dotenv;
+use log::{debug, warn};
+use std::env;
+use std::net::SocketAddr;
 
 fn get_socket() -> SocketAddr {
     let port = match env::var("GOTO_PORT") {
@@ -29,17 +28,14 @@ fn get_socket() -> SocketAddr {
 }
 
 pub fn start() {
-    debug!("Starting GoTo Server");
-
     dotenv().ok();
 
-    // let connection = db::establish_connection();
-    // db::print_keywords(connection);
+    debug!("Starting GoTo Server");
 
     let socket = get_socket();
     debug!("Binding to {}", socket);
 
-    let sys = actix::System::new("diesel-example");
+    let sys = actix::System::new("diesel-system");
     let addr = SyncArbiter::start(4, || {
         db::DbCon(db::establish_connection())
     });
