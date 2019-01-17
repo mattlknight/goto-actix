@@ -1,19 +1,10 @@
 use std::borrow::Cow;
 use std::fmt;
-// use diesel::Error;
 
 #[derive(Debug)]
 pub struct StringError<'a> {
    msg: Cow<'a, str>
 }
-
-// impl<'a> StringError<'a> {
-//     pub fn new(msg: Cow<'a, str>) -> Self {
-//         Self {
-//             msg
-//         }
-//     }
-// }
 
 impl<'a> From<diesel::result::Error> for StringError<'a> {
     fn from(error: diesel::result::Error) -> Self {

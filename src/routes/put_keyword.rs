@@ -1,15 +1,20 @@
 use actix_web::{self, HttpRequest, HttpResponse, Json, AsyncResponder, FutureResponse};
-use futures::future::Future;
+use crate::db::{DbMessage, DbResult};
 use crate::types::{AppState, KeywordPair};
-use crate::db::DbMessage;
+use futures::future::Future;
 use log::error;
 
-pub fn put_keyword((data, _params, req): (Json<KeywordPair>, actix_web::Path<String>, HttpRequest<AppState>)) -> FutureResponse<HttpResponse> {
-	req.state().db.send(DbMessage::Update(data.keyword.clone(), data.clone()))
+pub fn put_keyword((data, params, req): (Json<KeywordPair>, actix_web::Path<String>, HttpRequest<AppState>)) -> FutureResponse<HttpResponse> {
+	req.state().db.send(DbMessage::Update(params.clone(), data.clone()))
 		.from_err()
 		.and_then(|res| {
 			match res {
-				Ok(user) => Ok(HttpResponse::Ok().json(user)),
+				Ok(key_pair) => {
+					match key_pair.expect("Should always return some for PUT") {
+						DbResult::One(ref pair) => Ok(HttpResponse::Ok().json(pair)),
+						DbResult::Many(_) => unreachable!()
+					}
+				},
 				Err(err) => {
 					error!("{}", err);
 					Ok(HttpResponse::InternalServerError().into())

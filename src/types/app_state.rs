@@ -1,7 +1,6 @@
-// use actix::{Addr, SyncArbiter};
 use actix::Addr;
-use crate::db;
+use crate::db::DbCon;
 
 pub struct AppState {
-    pub db: Addr<db::DbCon>,
+    pub db: Addr<DbCon>,
 }

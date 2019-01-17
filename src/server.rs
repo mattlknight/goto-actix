@@ -13,7 +13,7 @@ fn get_socket() -> SocketAddr {
         Ok(port) => port,
         Err(e) => {
             warn!("Error reading GOTO_PORT from env, {:?}", e);
-            "8080".to_owned()
+            "8888".to_owned()
         }
     };
     let address = match env::var("GOTO_ADDRESS") {
@@ -40,20 +40,18 @@ pub fn start() {
         db::DbCon(db::establish_connection())
     });
 
+    db::print_keywords(db::establish_connection());
+
     server::HttpServer::new(move || {
         App::with_state(AppState{db: addr.clone()})
-            .resource("/", |r| r.get().f(routes::get_index))
-            .resource("/favicon.ico", |r| r.f(routes::favicon))
-            .resource("/error.html", |r| r.f(routes::get_error))
-
             .resource("/api/keyword", |r| {
-                r.get().with(routes::get_keywords);
+                r.get().with_async(routes::get_keywords);
                 r.post().with_async(routes::post_keyword);
             })
             .resource("/api/keyword/{keyword}", |r| {
-                r.get().with(routes::get_keyword);
+                r.get().with_async(routes::get_keyword);
                 r.put().with_async(routes::put_keyword);
-                r.delete().with(routes::delete_keyword);
+                r.delete().with_async(routes::delete_keyword);
             })
             .resource("/{keyword}", |r| r.get().with(routes::redirect_keyword))
     })
@@ -61,6 +59,6 @@ pub fn start() {
     .expect(&format!("Can not bind to {:?}", socket))
     .start();
 
-    println!("Started http server: 127.0.0.1:8080");
+    debug!("Started http server: {:?}", socket);
     let _ = sys.run();
 }
