@@ -2,12 +2,12 @@ use actix_web::{self, HttpRequest, HttpResponse, Json, AsyncResponder, FutureRes
 // use actix_web::{self, HttpRequest, HttpResponse, HttpMessage, FromRequest, Json, AsyncResponder, FutureResponse};
 use futures::future::Future;
 use crate::types::{AppState, KeywordPair};
+use crate::db::DbMessage;
 use log::error;
 // use std::ops::Deref;
 
 pub fn put_keyword((data, _params, req): (Json<KeywordPair>, actix_web::Path<String>, HttpRequest<AppState>)) -> FutureResponse<HttpResponse> {
-	let data = data.clone();
-	req.state().db.send(KeywordPair{keyword: data.keyword, url: data.url})
+	req.state().db.send(DbMessage::Update(data.keyword.clone(), data.clone()))
 		.from_err()
 		.and_then(|res| {
 			match res {
