@@ -35,7 +35,14 @@ A URL Shortener and Redirector Web App
  - `cargo run`
  - `postman`
   - You can skip sign in
-- Try a request
+- Try a GET request (`rust` keyword is embedded in migration)
+ - GET `http://localhost:8080/api/keyword/rust`
+  - You should get back
+`{
+    "keyword": "rust",
+    "url": "https://www.rust-lang.org/"
+}`
+- Try a POST request
  - POST `http://localhost:8080/api/keyword`
  - HEADER `content-type application/json`
  - BODY/raw/json `{ "keyword": "test", "url": "http://test.com/"}`

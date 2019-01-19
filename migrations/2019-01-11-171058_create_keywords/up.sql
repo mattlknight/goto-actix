@@ -53,3 +53,5 @@ CREATE INDEX idx_keywords_modified
     ON public.keywords USING btree
     (modified_on)
     TABLESPACE pg_default;
+
+INSERT INTO public.keywords (keyword, url) VALUES ('rust', 'https://www.rust-lang.org/');
