@@ -1,5 +1,6 @@
-use actix_web::{server, App};
+use actix_web::{server, http, App};
 use actix_web::middleware::Logger;
+use actix_web::middleware::cors::Cors;
 use actix::SyncArbiter;
 use crate::db;
 use crate::routes;
@@ -37,10 +38,13 @@ pub fn build_state() -> AppState {
 }
 
 fn create_app() -> App<AppState> {
-    App::with_state(build_state())
-        .middleware(RequestInterceptor)
-        .middleware(Logger::default())
-        .middleware(Logger::new("%a %{User-Agent}i"))
+    let app = App::with_state(build_state());
+    Cors::for_app(app)
+        .send_wildcard()
+        .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+        .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+        .allowed_header(http::header::CONTENT_TYPE)
+        .max_age(3600)
         .resource("/api/keyword", |r| {
             r.get().with_async(routes::get_keywords);
             r.post().with_async(routes::post_keyword);
@@ -51,6 +55,10 @@ fn create_app() -> App<AppState> {
             r.delete().with_async(routes::delete_keyword);
         })
         .resource("/{keyword}", |r| r.get().with(routes::redirect_keyword))
+        .register()
+        .middleware(RequestInterceptor)
+        .middleware(Logger::default())
+        .middleware(Logger::new("%a %{User-Agent}i"))
 }
 
 pub fn start() {

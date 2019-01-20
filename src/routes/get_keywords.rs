@@ -4,7 +4,11 @@ use crate::types::{AppState, KeywordFilter};
 use futures::future::Future;
 use log::error;
 
-pub fn get_keywords((data, req): (Json<KeywordFilter>, HttpRequest<AppState>)) -> FutureResponse<HttpResponse> {
+pub fn get_keywords((data, req): (Option<Json<KeywordFilter>>, HttpRequest<AppState>)) -> FutureResponse<HttpResponse> {
+	let data = match data {
+		Some(filter) => filter.clone(),
+		None => KeywordFilter { limit: 10, sort_asc: true },
+	};
 	req.state().db.send(DbMessage::SelectMany(data.clone()))
 		.from_err()
 		.and_then(|res| {
