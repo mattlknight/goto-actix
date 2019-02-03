@@ -1,8 +1,8 @@
-# goto [![Build Status](https://travis-ci.org/mattlknight/goto-actix.svg?branch=master)](https://travis-ci.org/mattlknight/goto-actix)
+# goto-actix [![Build Status](https://travis-ci.org/mattlknight/goto-actix.svg?branch=master)](https://travis-ci.org/mattlknight/goto-actix)
 
-A URL Shortener and Redirector Web App
+The API Server for GoTo, a Keyword and URL redirection service, built with Angular, Rust, and Actix-Web
 - Cloning this repo requires cloning submodules as well
- - `git clone --recurse-submodules -j8 <repo_url_here>`
+ - `git clone --recurse-submodules -j8 https://github.com/mattlknight/goto-actix`
 
 [Rust Docs](https://mattlknight.github.io/goto-actix/)
 
