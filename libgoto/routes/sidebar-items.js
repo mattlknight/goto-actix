@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["delete_keyword",""],["get_keyword",""],["get_keywords",""],["get_swagger_editor_index",""],["get_swagger_index",""],["get_swagger_yml",""],["post_keyword",""],["put_keyword",""],["redirect_keyword",""]]});

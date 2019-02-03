@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["DbMessage",""],["DbResult",""]],"fn":[["establish_connection",""],["print_keywords",""]],"struct":[["DbCon",""]]});
