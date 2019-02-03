@@ -1,4 +1,4 @@
-use actix_web::{server, http, App};
+use actix_web::{server, fs, http, App};
 use actix_web::middleware::Logger;
 use actix_web::middleware::cors::Cors;
 use actix::SyncArbiter;
@@ -45,6 +45,8 @@ fn create_app() -> App<AppState> {
         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
         .allowed_header(http::header::CONTENT_TYPE)
         .max_age(3600)
+        .resource("/api/doc", |r| r.get().f(routes::get_swagger_index))
+        .resource("/api/doc/swagger.yml", |r| r.get().f(routes::get_swagger_yml))
         .resource("/api/keyword", |r| {
             r.get().with_async(routes::get_keywords);
             r.post().with_async(routes::post_keyword);
@@ -56,6 +58,7 @@ fn create_app() -> App<AppState> {
         })
         .resource("/{keyword}", |r| r.get().with(routes::redirect_keyword))
         .register()
+        .handler("/api/doc", fs::StaticFiles::new("swagger-ui/dist/").unwrap())
         .middleware(RequestInterceptor)
         .middleware(Logger::default())
         .middleware(Logger::new("%a %{User-Agent}i"))
