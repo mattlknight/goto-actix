@@ -3,15 +3,15 @@ openapi: "3.0.2"
 info:
   title: "GoTo - API Server"
   description: "Create/Read/Update/Delete keyword entries for the GoTo URL redirection service. This API also provides statistics about keyword usage."
-  version: "2.5"
-  termsOfService: "https://openweathermap.org/terms"
+  version: "0.1.0"
+  # termsOfService: "https://openweathermap.org/terms"
   contact:
-    name: "OpenWeatherMap API"
-    url: "https://openweathermap.org/api"
-    email: "some_email@gmail.com"
+    name: "Matthew Knight"
+    url: "https://github.com/mattlknight/goto-actix"
+    email: "mattlknight@gmail.com"
   license:
-    name: "CC Attribution-ShareAlike 4.0 (CC BY-SA 4.0)"
-    url: "https://openweathermap.org/price"
+    name: "License"
+    url: "https://github.com/mattlknight/goto-actix/blob/master/LICENSE"
 
 servers:
 - url: "https://api.openweathermap.org/data/2.5/"
@@ -57,8 +57,8 @@ tags:
     description: "Get current weather details"
 
 externalDocs:
-  description: API Documentation
-  url: https://openweathermap.org/api
+  description: Rust Docs
+  url: https://mattlknight.github.io/goto-actix/
 
 components:
 

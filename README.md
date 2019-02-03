@@ -1,7 +1,10 @@
 # goto
+[![Build Status](https://travis-ci.org/mattlknight/goto-actix.svg?branch=master)](https://travis-ci.org/mattlknight/goto-actix)
 A URL Shortener and Redirector Web App
 - Cloning this repo requires cloning submodules as well
  - `git clone --recurse-submodules -j8 <repo_url_here>`
+
+[Rust Docs](https://mattlknight.github.io/goto-actix/)
 
 # Dev Machine Setup
 - postgres-11
