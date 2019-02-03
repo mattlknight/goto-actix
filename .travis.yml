@@ -1,7 +1,13 @@
 language: rust
 
 rust:
+  - stable
   - nightly
+
+matrix:
+  allow_failures:
+    - rust: stable
+  fast_finish: true
 
 cache:
   - apt
@@ -13,7 +19,7 @@ script:
 
 before_deploy:
   - cargo doc
-  - mdbook build book
+  # - mdbook build book
   - mkdir public
   - cp -r target/doc public/
   # - cp -r target/book public/
@@ -25,10 +31,7 @@ deploy:
   provider: pages
   skip-cleanup: true
   github-token: $GITHUB_TOKEN
-  keep-history: false
+  keep-history: true
   local-dir: public
-  # Workaround for travis-ci/travis-ci#9312
-  edge:
-    branch: pages-ivar-set
   on:
-branch: master
+    branch: gh-pages

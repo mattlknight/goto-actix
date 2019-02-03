@@ -7,7 +7,7 @@ info:
   # termsOfService: "https://openweathermap.org/terms"
   contact:
     name: "Matthew Knight"
-    url: "https://github.com/mattlknight/goto-actix"
+    url: "https://github.com/mattlknight"
     email: "mattlknight@gmail.com"
   license:
     name: "License"
