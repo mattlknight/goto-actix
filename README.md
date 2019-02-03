@@ -1,5 +1,7 @@
 # goto
 A URL Shortener and Redirector Web App
+- Cloning this repo requires cloning submodules as well
+ - `git clone --recurse-submodules -j8 <repo_url_here>`
 
 # Dev Machine Setup
 - postgres-11
@@ -48,6 +50,10 @@ A URL Shortener and Redirector Web App
  - BODY/raw/json `{ "keyword": "test", "url": "http://test.com/"}`
    - You can use https://jsonlint.com/ to validate your json
   - Successful setup should return a 200OK and the same keyword pair you POST'ed
+
+## API Development
+- Use the swagger-editor, before creating/updating rust source code
+ - `cd swagger-editor && npm start`
 
 ## Design
 - `<hostname>` can be goto or go, or whatever you want

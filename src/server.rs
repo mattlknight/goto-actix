@@ -39,7 +39,7 @@ pub fn build_state() -> AppState {
 
 fn create_app() -> App<AppState> {
     let app = App::with_state(build_state());
-    Cors::for_app(app)
+    let app = Cors::for_app(app)
         .send_wildcard()
         .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
@@ -61,7 +61,14 @@ fn create_app() -> App<AppState> {
         .handler("/api/doc", fs::StaticFiles::new("swagger-ui/dist/").unwrap())
         .middleware(RequestInterceptor)
         .middleware(Logger::default())
-        .middleware(Logger::new("%a %{User-Agent}i"))
+        .middleware(Logger::new("%a %{User-Agent}i"));
+
+    #[cfg(debug_assertions)]
+    let app = app.resource("/api/editor", |r| r.get().f(routes::get_swagger_editor_index))
+        .resource("/api/editor/swagger.yml", |r| r.get().f(routes::get_swagger_yml))
+        .handler("/api/editor", fs::StaticFiles::new("swagger-editor/").unwrap());
+
+    app
 }
 
 pub fn start() {
